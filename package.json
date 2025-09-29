@@ -1,0 +1,54 @@
+{
+  "name": "uzumaki",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/TCHIKSON/smartAnim-#readme",
+  "bugs": {
+    "url": "https://github.com/TCHIKSON/smartAnim-/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TCHIKSON/smartAnim-.git"
+  },
+  "license": "ISC",
+  "author": "tchikson",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon -r dotenv/config src/index.js",
+    "start": "node src/index.js",
+    "diag": "node -p \"process.version, process.cwd()\" && node -e \"console.log(require('fs').existsSync('src/index.js')?'src/index.js OK':'src/index.js MISSING')\"",
+    "test": "node --test",
+    "warmup": "node -r dotenv/config scripts/warmup_single.mjs",
+    "postinstall": "node scripts/postinstall-copy.mjs",
+    "discover:animesama": "node scripts/discover/animesama-discover.mjs",
+    "details:validate": "node scripts/validate-details.mjs",
+    "import:animes": "node -r dotenv/config scripts/import-animes.js dotenv_config_path=.env"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.55.0",
+    "axios": "^1.12.2",
+    "cheerio": "^1.1.0",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dashjs": "^4.7.4",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.0.1",
+    "flyctl": "^1.2.4",
+    "glob": "^11.0.3",
+    "helmet": "^7.1.0",
+    "hls.js": "^1.6.11",
+    "mongodb": "^6.19.0",
+    "morgan": "^1.10.0",
+    "multer": "1.4.5-lts.1",
+    "node-cron": "^4.2.1",
+    "nodemon": "^3.1.10",
+    "p-limit": "^7.1.1",
+    "p-retry": "^7.0.0",
+    "pino": "^9.9.0",
+    "puppeteer": "^24.21.0",
+    "undici": "^7.16.0",
+    "zod": "^4.1.5"
+  }
+}
