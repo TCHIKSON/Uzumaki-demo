@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.Uzumaki.Leanback" parent="Theme.Leanback">
+        <item name="android:colorPrimary">@color/tv_primary</item>
+        <item name="android:colorPrimaryDark">@color/tv_background</item>
+        <item name="android:colorAccent">@color/tv_secondary</item>
+        <item name="android:windowBackground">@color/tv_background</item>
+    </style>
+</resources>
