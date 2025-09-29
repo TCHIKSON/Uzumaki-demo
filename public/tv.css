@@ -1,0 +1,385 @@
+
+/* ========================================
+   Styles TV optimisés pour Android TV
+   Focus visible, safe areas, typographie 10-feet
+   ======================================== */
+
+:root {
+  /* Variables de focus */
+  --tv-focus-color: #ffffff;
+  --tv-focus-bg: rgba(255, 255, 255, 0.08);
+  --tv-focus-shadow: 0 0 0 3px var(--tv-focus-color), 0 8px 24px rgba(0, 0, 0, 0.5);
+  --tv-focus-scale: 1.05;
+  
+  /* Safe areas (5% overscan protection) */
+  --tv-safe-top: 28px;
+  --tv-safe-bottom: 28px;
+  --tv-safe-left: 58px;
+  --tv-safe-right: 58px;
+  
+  /* Typographie 10-feet */
+  --tv-h1-size: 36px;
+  --tv-h2-size: 28px;
+  --tv-h3-size: 24px;
+  --tv-body-size: 22px;
+  --tv-small-size: 20px;
+  
+  /* Espacement */
+  --tv-gap: 24px;
+  --tv-padding: 16px;
+  
+  /* Animation */
+  --tv-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== SAFE AREA CLASSES ===== */
+.tv-safe {
+  padding: var(--tv-safe-top) var(--tv-safe-right) var(--tv-safe-bottom) var(--tv-safe-left);
+}
+
+.tv-safe-inline {
+  padding-left: var(--tv-safe-left);
+  padding-right: var(--tv-safe-right);
+}
+
+.tv-safe-block {
+  padding-top: var(--tv-safe-top);
+  padding-bottom: var(--tv-safe-bottom);
+}
+
+/* Adaptation pour 4K */
+@media (min-width: 3840px) {
+  :root {
+    --tv-safe-top: 56px;
+    --tv-safe-bottom: 56px;
+    --tv-safe-left: 116px;
+    --tv-safe-right: 116px;
+    --tv-h1-size: 72px;
+    --tv-h2-size: 56px;
+    --tv-h3-size: 48px;
+    --tv-body-size: 44px;
+    --tv-small-size: 40px;
+  }
+}
+
+/* ===== FOCUS STYLES ===== */
+
+/* Reset focus par défaut */
+*:focus {
+  outline: none !important;
+}
+
+/* Focus principal pour tous les éléments interactifs */
+[tabindex]:focus,
+button:focus,
+.card:focus,
+.tile:focus,
+.ep:focus,
+.episode-card:focus,
+.control-btn:focus,
+.lang-chip:focus,
+select:focus,
+input:focus {
+  box-shadow: var(--tv-focus-shadow);
+  background: var(--tv-focus-bg);
+  border-radius: 12px;
+  transform: scale(var(--tv-focus-scale));
+  transition: var(--tv-transition);
+  z-index: 10;
+  position: relative;
+}
+
+/* Focus pour les boutons de contrôle */
+.control-btn:focus {
+  background: #6cf;
+  color: #000;
+}
+
+/* Focus pour les chips de langue */
+.lang-chip:focus,
+.lang-chip[aria-pressed="true"] {
+  background: #6cf;
+  color: #000;
+  border-color: #6cf;
+}
+
+/* Focus pour les cards */
+.card:focus,
+.episode-card:focus {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 0 0 4px #fff, 0 12px 40px rgba(102, 204, 255, 0.4);
+}
+
+/* Focus actuel pour les épisodes */
+.episode-card.current {
+  border-color: #6cf;
+  background: #132032;
+}
+
+.episode-card.current:focus {
+  box-shadow: 0 0 0 4px #6cf, 0 12px 40px rgba(102, 204, 255, 0.6);
+}
+
+/* Focus pour les selects */
+select:focus {
+  border-color: #6cf;
+  background: #2d3748;
+}
+
+/* ===== TYPOGRAPHIE 10-FEET ===== */
+
+.tv-h1 {
+  font-size: var(--tv-h1-size);
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.tv-h2 {
+  font-size: var(--tv-h2-size);
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.tv-h3 {
+  font-size: var(--tv-h3-size);
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.tv-body {
+  font-size: var(--tv-body-size);
+  line-height: 1.5;
+}
+
+.tv-small {
+  font-size: var(--tv-small-size);
+  line-height: 1.4;
+}
+
+/* Application aux éléments existants */
+.brand-name { font-size: var(--tv-h3-size); }
+.section-title { font-size: var(--tv-h3-size); }
+.br-title { font-size: var(--tv-h2-size); }
+.video-title { font-size: var(--tv-h2-size); }
+.video-subtitle { font-size: var(--tv-body-size); }
+.episode-title { font-size: var(--tv-body-size); }
+.title { font-size: var(--tv-body-size); }
+.ep .name { font-size: var(--tv-body-size); }
+.ep .sub { font-size: var(--tv-small-size); }
+.time-display { font-size: var(--tv-body-size); }
+
+/* ===== TAILLES MINIMALES POUR CIBLES TACTILES ===== */
+
+button,
+.btn,
+.card,
+.tile,
+.control-btn {
+  min-height: 64px;
+  min-width: 64px;
+}
+
+.episode-card {
+  min-height: 180px;
+}
+
+.lang-chip {
+  min-height: 48px;
+  padding: 12px 20px;
+  font-size: var(--tv-small-size);
+}
+
+/* ===== NAVIGATION CONTAINER STYLES ===== */
+
+[data-nav] {
+  position: relative;
+}
+
+[data-nav="row"] {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: var(--tv-gap);
+}
+
+[data-nav="grid"] {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--tv-gap);
+}
+
+/* Focus memory indicator */
+[data-focus-memory="true"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  background: #6cf;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+[data-focus-memory="true"]:focus-within::before {
+  opacity: 1;
+}
+
+/* ===== SCROLLBAR STYLES POUR TV ===== */
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== ANIMATIONS OPTIMISÉES ===== */
+
+@keyframes focusPulse {
+  0%, 100% { 
+    box-shadow: 0 0 0 3px rgba(102, 204, 255, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 0 6px rgba(102, 204, 255, 0.2);
+  }
+}
+
+.is-navigating [tabindex="0"] {
+  animation: focusPulse 2s infinite;
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.hardware-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ===== ÉTATS VISUELS ===== */
+
+[disabled],
+[aria-disabled="true"] {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+[aria-hidden="true"] {
+  display: none !important;
+}
+
+/* Loading states */
+.is-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.is-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #6cf;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== MODAL & OVERLAY FOCUS TRAP ===== */
+
+[role="dialog"]:not([hidden]) {
+  position: fixed;
+  z-index: 9999;
+}
+
+/* Backdrop pour les modals */
+.tv-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+/* ===== UTILITIES ===== */
+
+.tv-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.tv-no-scroll {
+  overflow: hidden;
+}
+
+.tv-text-center {
+  text-align: center;
+}
+
+.tv-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== DEBUG MODE ===== */
+
+.tv-debug [tabindex] {
+  position: relative;
+}
+
+.tv-debug [tabindex]::after {
+  content: attr(tabindex);
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: red;
+  color: white;
+  padding: 2px 6px;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.tv-debug [data-nav]::before {
+  content: attr(data-nav) " " attr(data-wrap);
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: blue;
+  color: white;
+  padding: 2px 6px;
+  font-size: 12px;
+  z-index: 1000;
+  pointer-events: none;
+}

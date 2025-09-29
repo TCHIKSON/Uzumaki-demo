@@ -1,0 +1,10 @@
+#player-overlay{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;z-index:9999}
+#player-overlay[hidden]{ display:none; }
+.player-shell{width:92vw;max-width:1600px;aspect-ratio:16/9;background:#000;position:relative;outline:2px solid #151a;box-shadow:0 8px 32px #000}
+#tv-video,#tv-iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.player-ui{position:absolute;left:0;right:0;top:0;display:flex;gap:.5rem;align-items:center;padding:.5rem .75rem}
+.btn{background:#1118;border:1px solid #333;border-radius:.75rem;padding:.4rem .7rem;color:#fff}
+.btn:focus{outline:2px solid #6cf}
+.title{color:#fff;font-weight:600;margin-left:.25rem;text-shadow:0 2px 6px #000}
+:where([inert]){pointer-events:none;user-select:none}
+/* Respecte vraiment l'attribut hidden même si on a display:flex

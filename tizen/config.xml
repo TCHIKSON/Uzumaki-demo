@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wgt:widget xmlns="http://www.w3.org/ns/widgets" xmlns:wgt="http://www.w3.org/ns/widgets" id="com.animee.app" version="1.0.0" viewmodes="maximized">
+  <name>Uzumaki</name>
+  <icon src="public/assets/logo.png"/>
+  <content src="streamApp.html"/>
+  <tizen:application id="com.Uzumaki.app" package="com.animee" required_version="4.0"/>
+  <tizen:category name="http://tizen.org/category/tv"/>
+  <tizen:privilege name="http://tizen.org/privilege/internet"/>
+</wgt:widget>

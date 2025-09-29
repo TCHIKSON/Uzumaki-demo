@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Uzumaki</title>
+  <link rel="icon" type="image/png" sizes="32x32"
+    href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=" />
+  <link rel="preconnect" href="https://cdn.statically.io" crossorigin />
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      background: #0a0c10;
+      color: #eaeef5;
+      font-family: system-ui, Segoe UI, Roboto, Ubuntu, Inter, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* Navigation principale */
+    header {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .6rem .9rem;
+      background: #0a0c10e6;
+      backdrop-filter: blur(6px);
+      z-index: 10;
+      border-bottom: 1px solid #374151;
+    }
+
+    header img.brand {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+    header .brand-name {
+      font-weight: 700;
+      letter-spacing: .3px;
+      text-transform: lowercase;
+    }
+
+    main {
+      max-width: 1600px;
+      margin: 0 auto;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+    }
+
+    .search-wrapper {
+      display: flex;
+      justify-content: center;
+      padding: 1rem 1rem 0;
+    }
+
+    .search-input {
+      background: #1a1f26;
+      color: #eaeef5;
+      border: 2px solid #1b2735;
+      border-radius: .8rem;
+      padding: .6rem .9rem;
+      font-size: .9rem;
+      min-width: 200px;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #6cf;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      opacity: .85;
+      font-weight: 700;
+      padding: 1rem 1rem 0;
+    }
+
+    .resume-grid,
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: .9rem;
+      padding: 1rem;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: .45rem;
+      background: #0f131a;
+      border: 1px solid #17202b;
+      border-radius: .9rem;
+      padding: .55rem;
+      cursor: pointer;
+      transition: all .3s ease;
+    }
+
+    .card:focus {
+      outline: 2px solid #6cf;
+      transform: scale(1.05);
+    }
+
+    .poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+      border-radius: .6rem;
+      background: #0b0d10;
+    }
+
+    .title {
+      font-size: .95rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .muted {
+      opacity: .75;
+      font-size: .8rem;
+    }
+
+    /* ===== Smart Player Styles ===== */
+    #player-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #player-overlay[hidden] {
+      display: none;
+    }
+
+    .smart-player {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .video-container {
+      position: relative;
+      flex: 1;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .smart-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    /* Masquer les contrôles natifs pour l'autoplay */
+    .smart-video::-webkit-media-controls {
+      display: none !important;
+    }
+
+    .smart-video::-webkit-media-controls-enclosure {
+      display: none !important;
+    }
+
+    /* Loading Indicator */
+    .loading-indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 12px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      z-index: 100;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-top: 4px solid #6cf;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Controls Overlay */
+    .controls-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, .8));
+      padding: 40px;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .smart-player:hover .controls-overlay,
+    .controls-overlay:focus-within,
+    .controls-overlay.visible {
+      transform: translateY(0);
+    }
+
+    /* Progress container */
+    .progress-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #6cf;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.1s ease;
+    }
+
+    .progress-buffer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      width: 0%;
+    }
+
+    /* Control buttons */
+    .controls-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .controls-left,
+    .controls-center,
+    .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .control-btn {
+      background: rgba(255, 255, 255, .2);
+      backdrop-filter: blur(10px);
+      border: none;
+      color: white;
+      padding: 15px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 24px;
+      min-width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .control-btn:hover,
+    .control-btn:focus {
+      background: #6cf;
+      transform: scale(1.1);
+      outline: none;
+      box-shadow: 0 5px 20px rgba(102, 204, 255, .4);
+    }
+
+    .control-btn.play-pause {
+      width: 80px;
+      height: 80px;
+      font-size: 36px;
+    }
+
+    /* Volume Control */
+    .volume-control {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .volume-slider {
+      width: 100px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: #6cf;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    /* Video Info */
+    .video-info {
+      position: absolute;
+      top: 40px;
+      left: 40px;
+      background: rgba(255, 255, 255, .15);
+      backdrop-filter: blur(10px);
+      padding: 20px 30px;
+      border-radius: 12px;
+      transform: translateY(-150%);
+      transition: transform 0.3s ease;
+      z-index: 50;
+    }
+
+    .smart-player:hover .video-info,
+    .video-info.visible {
+      transform: translateY(0);
+    }
+
+    .video-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .video-subtitle {
+      font-size: 16px;
+      color: #b8c5d1;
+    }
+
+    /* Error Message */
+    .error-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 500px;
+      display: none;
+      z-index: 100;
+    }
+
+    /* Time display */
+    .time-display {
+      font-size: 18px;
+      color: #b8c5d1;
+      font-weight: 500;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    /* Hide controls when inactive */
+    .smart-player.inactive .controls-overlay,
+    .smart-player.inactive .video-info {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+
+    .smart-player.inactive .video-info {
+      transform: translateY(-150%);
+    }
+
+    /* ===== Zone épisodes en bas ===== */
+    .episodes-footer {
+      background: rgba(10, 12, 16, .95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid #374151;
+      padding: 20px;
+      height: 280px;
+      overflow: hidden;
+    }
+
+    .episodes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .episodes-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .episodes-filters {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .filter-select {
+      background: #1a1f26;
+      color: #eaeef5;
+      border: 2px solid #1b2735;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: #6cf;
+    }
+
+    .lang-chips {
+      display: flex;
+      gap: 8px;
+    }
+
+    .lang-chip {
+      background: #1a1f26;
+      color: #c9d3e1;
+      border: 2px solid #1b2735;
+      border-radius: 16px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .3s ease;
+    }
+
+    .lang-chip:focus,
+    .lang-chip[aria-pressed="true"] {
+      outline: none;
+      background: #6cf;
+      color: white;
+      border-color: #6cf;
+    }
+
+    .episodes-scroll {
+      display: flex;
+      gap: 15px;
+      overflow-x: auto;
+      padding: 10px 0;
+      scroll-behavior: smooth;
+      height: 180px;
+    }
+
+    .episodes-scroll::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .episodes-scroll::-webkit-scrollbar-track {
+      background: #1a1f26;
+      border-radius: 4px;
+    }
+
+    .episodes-scroll::-webkit-scrollbar-thumb {
+      background: #1b2735;
+      border-radius: 4px;
+    }
+
+    .episode-card {
+      flex: 0 0 280px;
+      background: #0f131a;
+      border: 2px solid #17202b;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all .3s ease;
+      position: relative;
+      animation: fadeIn .6s ease;
+    }
+
+    .episode-card:focus {
+      outline: none;
+      border-color: #6cf;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(102, 204, 255, .3);
+    }
+
+    .episode-card.current {
+      border-color: #6cf;
+      background: #132032;
+    }
+
+    .episode-thumbnail {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      background: #1a1f26;
+    }
+
+    .episode-info {
+      padding: 12px;
+    }
+
+    .episode-number {
+      background: #6cf;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    .episode-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #eaeef5;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    .episode-duration {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    /* ===== Sidebar Browser ===== */
+    #browser {
+      position: fixed;
+      inset: 0 0 0 auto;
+      width: 42vw;
+      max-width: 680px;
+      min-width: 480px;
+      background: #0b0f15;
+      border-left: 1px solid #1a2430;
+      box-shadow: -24px 0 48px rgba(0, 0, 0, .4);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+
+    #browser[hidden] {
+      display: none;
+    }
+
+    .br-header {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid #16202c;
+      background: #0f131a;
+    }
+
+    .br-title {
+      font-weight: 800;
+      font-size: 1.15rem;
+      line-height: 1.25;
+      color: #eaf2ff;
+      flex: 1;
+    }
+
+    .br-close {
+      background: #1a1f26;
+      border: 2px solid #1b2735;
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: .5rem .8rem;
+      border-radius: .6rem;
+      transition: .2s;
+    }
+
+    .br-close:focus {
+      outline: 2px solid #6cf;
+      background: #2d3748;
+      border-color: #374151;
+      color: #eaeef5;
+    }
+
+    .br-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1.5rem;
+      overflow: auto;
+      flex: 1;
+    }
+
+    .br-filters {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: .75rem;
+      background: #0f131a;
+      border: 1px solid #16202c;
+      border-radius: .8rem;
+    }
+
+    .br-select {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .br-select select {
+      background: #1a1f26;
+      color: #eaeef5;
+      border: 2px solid #1b2735;
+      border-radius: .8rem;
+      padding: .6rem .9rem;
+      font-size: .9rem;
+      min-width: 100px;
+    }
+
+    .br-select select:focus {
+      outline: none;
+      border-color: #6cf;
+    }
+
+    #br-lang {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+
+    .episodes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: .8rem;
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+      padding-right: .5rem;
+    }
+
+    .ep {
+      display: flex;
+      gap: .8rem;
+      background: #0f131a;
+      border: 2px solid #17202b;
+      border-radius: .8rem;
+      padding: .8rem;
+      align-items: center;
+      cursor: pointer;
+      min-height: 80px;
+      transition: .2s;
+      position: relative;
+    }
+
+    .ep:focus {
+      outline: none;
+      border-color: #6cf;
+      box-shadow: 0 0 0 2px rgba(102, 204, 255, .3);
+      transform: translateY(-1px);
+    }
+
+    .ep .num {
+      background: #132032;
+      color: #7fc1ff;
+      font-weight: 700;
+      min-width: 3rem;
+      height: 3rem;
+      border-radius: .8rem;
+      display: grid;
+      place-items: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .ep .meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .ep .name {
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.3;
+      margin-bottom: .2rem;
+    }
+
+    .ep .sub {
+      opacity: .75;
+      font-size: .85rem;
+      color: #9ca3af;
+    }
+
+    .resume-wrap {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: 0 1rem;
+    }
+
+    .resume-nav {
+      background: #1a1f26;
+      border: 2px solid #1b2735;
+      color: #eaeef5;
+      width: 36px;
+      height: 36px;
+      border-radius: .6rem;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .resume-nav:focus {
+      outline: 2px solid #6cf;
+      background: #2d3748;
+      border-color: #374151;
+    }
+
+    .resume-scroller {
+      display: flex;
+      gap: .9rem;
+      flex: 1 1 auto;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 1rem 0;
+      scroll-snap-type: x proximity;
+      overscroll-behavior-x: contain;
+    }
+
+    .resume-scroller::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .resume-scroller::-webkit-scrollbar-track {
+      background: #0f131a;
+      border-radius: 4px;
+    }
+
+    .resume-scroller::-webkit-scrollbar-thumb {
+      background: #1b2735;
+      border-radius: 4px;
+    }
+
+    .resume-scroller .card {
+      flex: 0 0 160px;
+      scroll-snap-align: start;
+    }
+
+    .error-message {
+      background: rgba(239, 68, 68, .1);
+      border: 1px solid rgba(239, 68, 68, .3);
+      color: #fca5a5;
+      padding: 1rem;
+      border-radius: .8rem;
+      margin: 1rem 0;
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      #browser {
+        width: 100vw;
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .controls-main {
+        gap: 15px;
+      }
+
+      .control-btn {
+        min-width: 50px;
+        height: 50px;
+        font-size: 20px;
+      }
+
+      .control-btn.play-pause {
+        width: 70px;
+        height: 70px;
+        font-size: 30px;
+      }
+
+      .video-info {
+        top: 20px;
+        left: 20px;
+        padding: 15px 20px;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="./tv.css">
+  </style>
+</head>
+
+<body>
+  <header>
+    <img class="brand" src="/assets/logo.png" alt="Logo Uzumaki" />
+    <div class="brand-name">Uzumaki</div>
+  </header>
+
+  <div class="search-wrapper">
+    <input id="search-input" class="search-input" type="search" placeholder="Rechercher..."
+      aria-label="Rechercher un animé" />
+  </div>
+
+  <main>
+    <section aria-label="Reprendre la lecture">
+      <h2 class="section-title">Reprendre la lecture</h2>
+      <div class="resume-wrap">
+        <button id="resume-prev" class="resume-nav" aria-label="Défiler à gauche">‹</button>
+        <div id="resume-scroller" class="resume-scroller" data-nav="row" data-wrap="x" data-memory="true" tabindex="0"
+          aria-label="Historique"></div>
+        <button id="resume-next" class="resume-nav" aria-label="Défiler à droite">›</button>
+      </div>
+    </section>
+
+    <section id="grid" data-nav="grid" data-wrap="x" data-memory="true" aria-label="Catalogue"></section>
+  </main>
+
+  <!-- Sidebar Browser -->
+  <aside id="browser" hidden aria-modal="true" role="dialog" aria-label="Choisir épisode">
+    <div class="br-header">
+      <div class="br-title" id="br-title">Titre</div>
+      <div class="br-controls">
+        <button id="browser-close" class="br-close" aria-label="Fermer">✕</button>
+      </div>
+    </div>
+    <div class="br-body">
+      <div class="br-filters">
+        <div class="br-select">
+          <label for="br-season" class="muted">Saison</label>
+          <select id="br-season" aria-label="Choisir la saison"></select>
+        </div>
+        <div class="br-lang" id="br-lang"></div>
+      </div>
+      <div class="row-title">Épisodes</div>
+      <div id="ep-row" class="episodes" data-nav="grid" data-wrap="none" data-memory="true"
+        aria-label="Liste des épisodes"></div>
+      <div id="error-container"></div>
+    </div>
+  </aside>
+
+  <!-- Smart TV Player avec Autoplay -->
+  <div id="player-overlay" hidden aria-modal="true" role="dialog">
+    <div class="smart-player" id="smartPlayer">
+      <div class="video-container">
+        <video class="smart-video" id="tv-video" playsinline muted autoplay preload="auto" webkit-playsinline></video>
+
+        <div class="loading-indicator" id="loadingIndicator">
+          <div class="loading-spinner"></div>
+          <div>Chargement...</div>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+          <h3>Erreur de lecture</h3>
+          <p id="errorText">Impossible de lire cette vidéo</p>
+          <button class="control-btn" onclick="retryCurrentVideo()" style="margin-top: 15px;">
+            🔄 Réessayer
+          </button>
+        </div>
+      </div>
+
+      <div class="video-info" id="videoInfo">
+        <div class="video-title" id="player-title">Titre de la vidéo</div>
+        <div class="video-subtitle" id="player-subtitle">Episode 1</div>
+      </div>
+
+      <div class="controls-overlay" id="controlsOverlay">
+        <div class="progress-container" id="progressContainer">
+          <div class="progress-buffer" id="progressBuffer"></div>
+          <div class="progress-bar" id="video-progress"></div>
+        </div>
+
+        <div class="controls-main">
+          <div class="controls-left">
+            <span class="time-display" id="current-time">0:00</span>
+          </div>
+
+          <div class="controls-center" data-nav="row" data-wrap="x">
+            <button class="control-btn" id="rewind-btn" title="Reculer 10s">⏪</button>
+            <button class="control-btn play-pause" id="play-pause-btn" title="Lecture/Pause">▶️</button>
+            <button class="control-btn" id="forward-btn" title="Avancer 10s">⏩</button>
+          </div>
+
+          <div class="controls-right" data-nav="row" data-wrap="none">
+            <div class="volume-control">
+              <button class="control-btn" id="volume-btn" title="Muet">🔊</button>
+              <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="0">
+            </div>
+
+            <button class="control-btn" id="next-btn" title="Suivant">⏭️</button>
+            <button class="control-btn" id="fullscreen-btn" title="Plein écran">⛶</button>
+            <button class="control-btn" id="player-close" title="Fermer">✕</button>
+            <span class="time-display" id="total-time">0:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Episodes footer -->
+      <div class="episodes-footer">
+        <div class="episodes-header">
+          <h2>Épisodes</h2>
+          <div class="episodes-filters">
+            <select class="filter-select" id="player-season-select"></select>
+            <div class="lang-chips" id="player-lang-chips"></div>
+          </div>
+        </div>
+        <div class="episodes-scroll" id="player-episodes-scroll" data-nav="row" data-wrap="x" data-memory="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vendors -->
+  <script src="./vendor/hls.min.js"></script>
+  <script src="./vendor/dash.all.min.js"></script>
+  <script src="./js/player.js"></script>
+
+
+  <script type="module" src="./streamApp.js"></script>
+  <script type="module" src="./init-tv-focus.js"></script>
+</body>
+
+</html>
