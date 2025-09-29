@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Uzumaki TV</string>
+    <string name="continue_watching">Reprendre la lecture</string>
+    <string name="catalog">Catalogue</string>
+    <string name="loading">Chargement…</string>
+    <string name="error">Erreur</string>
+    <string name="retry">Réessayer</string>
+    <string name="play">Lecture</string>
+    <string name="pause">Pause</string>
+    <string name="language">Langue</string>
+    <string name="season">Saison</string>
+</resources>
