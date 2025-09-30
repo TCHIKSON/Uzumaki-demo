@@ -6,7 +6,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,7 +23,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.tv.foundation.lazy.list.TvLazyColumn
 import androidx.tv.foundation.lazy.list.TvLazyRow
-import androidx.tv.material3.*
+import androidx.tv.material3.Card
+import androidx.tv.material3.ExperimentalTvMaterial3Api
 import coil.compose.AsyncImage
 import com.uzumaki.tv.data.model.AnimeDetails
 import com.uzumaki.tv.data.model.Episode
@@ -198,7 +204,11 @@ private fun DetailsContent(
                 Column(
                     modifier = Modifier.align(Alignment.BottomStart).padding(48.dp)
                 ) {
-                    Text(anime.title, style = MaterialTheme.typography.displaySmall, color = Color.White)
+                    Text(
+                        text = anime.title,
+                        style = MaterialTheme.typography.displaySmall,
+                        color = Color.White
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         anime.genres.take(3).forEach { genre ->
@@ -270,7 +280,10 @@ private fun DetailsContent(
         
         item {
             Column(modifier = Modifier.padding(horizontal = 48.dp)) {
-                Text("Épisodes (${episodes.size})", style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    text = "Épisodes (${episodes.size})",
+                    style = MaterialTheme.typography.headlineSmall
+                )
                 Spacer(modifier = Modifier.height(16.dp))
                 episodes.forEach { episode ->
                     Card(
@@ -287,13 +300,23 @@ private fun DetailsContent(
                                 modifier = Modifier.size(48.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.PlayArrow, "Play", tint = Color.White)
+                                    androidx.compose.material3.Icon(
+                                        imageVector = Icons.Default.PlayArrow,
+                                        contentDescription = "Play",
+                                        tint = Color.White
+                                    )
                                 }
                             }
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
-                                Text(episode.title, style = MaterialTheme.typography.titleMedium)
-                                Text("Épisode ${episode.episodeNumber}", style = MaterialTheme.typography.bodySmall)
+                                Text(
+                                    text = episode.title,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = "Épisode ${episode.episodeNumber}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
                         }
                     }
