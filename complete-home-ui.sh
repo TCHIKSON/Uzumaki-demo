@@ -1,3 +1,11 @@
+#!/bin/bash
+set -e
+
+echo "Amélioration UI du HomeScreen..."
+
+BASE="app-tv/src/main/kotlin/com/uzumaki/tv"
+
+cat > "$BASE/ui/home/HomeScreen.kt" << 'HOMEEOF'
 package com.uzumaki.tv.ui.home
 
 import androidx.activity.compose.BackHandler
@@ -288,3 +296,11 @@ fun AnimeCard(
         }
     }
 }
+HOMEEOF
+
+echo "HomeScreen UI complet créé!"
+echo ""
+echo "Commit et push:"
+echo "  git add ."
+echo "  git commit -m 'feat(tv): complete HomeScreen UI with cards grid and carousel'"
+echo "  git push origin dev-plus"
