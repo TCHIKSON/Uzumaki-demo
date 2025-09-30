@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -288,10 +289,15 @@ private fun DetailsContent(
                 episodes.forEach { episode ->
                     Card(
                         onClick = { onEpisodeClick(episode) },
-                        modifier = Modifier.fillMaxWidth().height(80.dp).padding(bottom = 12.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .padding(bottom = 12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxSize().padding(16.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Surface(
@@ -300,7 +306,7 @@ private fun DetailsContent(
                                 modifier = Modifier.size(48.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    androidx.compose.material3.Icon(
+                                    Icon(
                                         imageVector = Icons.Default.PlayArrow,
                                         contentDescription = "Play",
                                         tint = Color.White
