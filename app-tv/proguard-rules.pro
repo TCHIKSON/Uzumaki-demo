@@ -13,6 +13,10 @@
   @com.google.gson.annotations.SerializedName <fields>;
 }
 
+-keep class com.google.gson.stream.** { *; }
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keepattributes Signature
+
 # Media3
 -keep class androidx.media3.** { *; }
 -dontwarn androidx.media3.**

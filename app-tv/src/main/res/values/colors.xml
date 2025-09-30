@@ -5,4 +5,5 @@
     <color name="tv_surface">#FF1E1E1E</color>
     <color name="focus_highlight">#4DFFFFFF</color>
     <color name="focus_border">#FFFFFFFF</color>
+    <color name="ic_launcher_background">#121212</color>
 </resources>

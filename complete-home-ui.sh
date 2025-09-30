@@ -1,3 +1,11 @@
+#!/bin/bash
+set -e
+
+echo "Amélioration UI du HomeScreen..."
+
+BASE="app-tv/src/main/kotlin/com/uzumaki/tv"
+
+cat > "$BASE/ui/home/HomeScreen.kt" << 'HOMEEOF'
 package com.uzumaki.tv.ui.home
 
 import androidx.activity.compose.BackHandler
@@ -161,9 +169,9 @@ private fun HomeContent(
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(horizontal = 48.dp, vertical = 8.dp)
                 )
-                CatalogRows(
+                CatalogGrid(
                     items = catalog,
-                    onItemClick = { anime -> onAnimeClick(anime.slug) }
+                    onItemClick = { anime -> onAnimeClick(anime.id.oid) }
                 )
             }
         }
@@ -237,26 +245,21 @@ fun ContinueWatchingCard(
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun CatalogRows(
+fun CatalogGrid(
     items: List<Anime>,
     onItemClick: (Anime) -> Unit
 ) {
-    // 6 cartes par rangée (comme ta grille Fixed(6))
-    val rows = remember(items) { items.chunked(6) }
-
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        rows.forEach { row ->
-            TvLazyRow(
-                modifier = Modifier.padding(horizontal = 48.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(row.size) { i ->
-                    AnimeCard(
-                        anime = row[i],
-                        onClick = { onItemClick(row[i]) }
-                    )
-                }
-            }
+    androidx.tv.foundation.lazy.grid.TvLazyVerticalGrid(
+        columns = androidx.tv.foundation.lazy.grid.TvGridCells.Fixed(6),
+        modifier = Modifier.padding(horizontal = 48.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(items.size) { index ->
+            AnimeCard(
+                anime = items[index],
+                onClick = { onItemClick(items[index]) }
+            )
         }
     }
 }
@@ -293,3 +296,11 @@ fun AnimeCard(
         }
     }
 }
+HOMEEOF
+
+echo "HomeScreen UI complet créé!"
+echo ""
+echo "Commit et push:"
+echo "  git add ."
+echo "  git commit -m 'feat(tv): complete HomeScreen UI with cards grid and carousel'"
+echo "  git push origin dev-plus"

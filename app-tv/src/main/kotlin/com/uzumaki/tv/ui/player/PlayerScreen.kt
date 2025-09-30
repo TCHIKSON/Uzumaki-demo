@@ -1,3 +1,4 @@
+@file:OptIn(androidx.media3.common.util.UnstableApi::class)
 package com.uzumaki.tv.ui.player
 
 import androidx.activity.compose.BackHandler
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit
 
 @Composable
 fun PlayerScreen(
-    animeId: String,
+    slug: String,
     season: String,
     episodeId: String,
     language: String,
@@ -39,8 +40,8 @@ fun PlayerScreen(
     val playerState by viewModel.playerState.collectAsState()
     val context = LocalContext.current
     
-    LaunchedEffect(animeId, season, episodeId, language) {
-        viewModel.initializePlayer(animeId, season, episodeId, language)
+    LaunchedEffect(slug, season, episodeId, language) {
+        viewModel.initializePlayer(slug, season, episodeId, language)
     }
     
     BackHandler {

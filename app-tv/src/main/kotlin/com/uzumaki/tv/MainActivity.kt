@@ -1,6 +1,7 @@
 package com.uzumaki.tv
 
 import android.os.Bundle
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,10 +21,10 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         setContent {
             UzumakiTvTheme {
                 UzumakiTvApp()
@@ -35,7 +36,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun UzumakiTvApp() {
     val navController = rememberNavController()
-    
+
     TvNavHost(
         navController = navController,
         modifier = Modifier.fillMaxSize()
@@ -54,8 +55,8 @@ fun TvNavHost(
     ) {
         composable("home") {
             HomeScreen(
-                onAnimeClick = { animeId ->
-                    navController.navigate("details/$animeId")
+                onAnimeClick = { slug ->
+                    navController.navigate("details/${Uri.encode(slug)}")
                 },
                 onContinueWatchingClick = { progress ->
                     navController.navigate(
@@ -64,33 +65,33 @@ fun TvNavHost(
                 }
             )
         }
-        
+
         composable(
-            route = "details/{animeId}",
-            arguments = listOf(navArgument("animeId") { type = NavType.StringType })
+            route = "details/{slug}",
+            arguments = listOf(navArgument("slug") { type = NavType.StringType })
         ) { backStackEntry ->
-            val animeId = backStackEntry.arguments?.getString("animeId")!!
-            
+            val slug = backStackEntry.arguments?.getString("slug")!!
+
             DetailsScreen(
-                animeId = animeId,
+                slug = slug,
                 onEpisodeClick = { episodeId, seasonId, language ->
-                    navController.navigate("player/$animeId/$seasonId/$episodeId/$language")
+                    navController.navigate("player/${Uri.encode(slug)}/${Uri.encode(seasonId)}/${Uri.encode(episodeId)}/${Uri.encode(language)}")
                 },
                 onBackPressed = { navController.popBackStack() }
             )
         }
-        
+
         composable(
-            route = "player/{animeId}/{seasonId}/{episodeId}/{language}",
+            route = "player/{slug}/{seasonId}/{episodeId}/{language}",
             arguments = listOf(
-                navArgument("animeId") { type = NavType.StringType },
+                navArgument("slug") { type = NavType.StringType },
                 navArgument("seasonId") { type = NavType.StringType },
                 navArgument("episodeId") { type = NavType.StringType },
                 navArgument("language") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             PlayerScreen(
-                animeId = backStackEntry.arguments?.getString("animeId")!!,
+                slug = backStackEntry.arguments?.getString("slug")!!,
                 season = backStackEntry.arguments?.getString("seasonId")!!,
                 episodeId = backStackEntry.arguments?.getString("episodeId")!!,
                 language = backStackEntry.arguments?.getString("language")!!,

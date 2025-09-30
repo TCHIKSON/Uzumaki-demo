@@ -1,3 +1,13 @@
+#!/bin/bash
+# Fix DetailsScreen.kt MaterialTheme import issue
+
+set -e
+
+echo "🔧 Correction de DetailsScreen.kt..."
+
+BASE="app-tv/src/main/kotlin/com/uzumaki/tv"
+
+cat > "$BASE/ui/details/DetailsScreen.kt" << 'FIXEOF'
 package com.uzumaki.tv.ui.details
 
 import androidx.activity.compose.BackHandler
@@ -9,7 +19,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -45,95 +54,73 @@ class DetailsViewModel @Inject constructor(
     private val catalogRepository: CatalogRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
-
+    
     private val _uiState = MutableStateFlow<DetailsUiState>(DetailsUiState.Loading)
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
-
+    
     private val _selectedSeason = MutableStateFlow(0)
     val selectedSeason: StateFlow<Int> = _selectedSeason.asStateFlow()
-
+    
     private val _selectedLanguage = MutableStateFlow("VOSTFR")
     val selectedLanguage: StateFlow<String> = _selectedLanguage.asStateFlow()
-
-    fun loadAnimeDetails(slug: String) {
+    
+    fun loadAnimeDetails(animeId: String) {
         viewModelScope.launch {
             _uiState.value = DetailsUiState.Loading
-            Timber.d("DetailsViewModel.loadAnimeDetails slug=%s", slug)
-
-            val result = catalogRepository.getAnimeDetails(slug)
-            result.fold(
-                onSuccess = { anime ->
-                    viewModelScope.launch {
-                        val preferredLanguage = settingsRepository.getPreferredLanguage()
-                        _selectedLanguage.value =
-                            if (anime.availableLanguages.contains(preferredLanguage)) {
-                                preferredLanguage
-                            } else {
-                                anime.availableLanguages.firstOrNull() ?: "VOSTFR"
-                            }
-
-                        // Saison 0 = saison 1 pour l'API
-                        _selectedSeason.value = 0
-                        loadEpisodesForSeason(anime, 0, _selectedLanguage.value)
-                    }
-                },
-                onFailure = { e ->
-                    val msg = e.toReadableMessage(prefix = "Chargement de l’anime", extra = "slug=$slug")
-                    Timber.e(e, "getAnimeDetails failed: %s", msg)
-                    _uiState.value = DetailsUiState.Error(msg)
+            
+            try {
+                val animeResult = catalogRepository.getAnimeDetails(animeId)
+                if (animeResult.isFailure) {
+                    _uiState.value = DetailsUiState.Error("Failed to load anime")
+                    return@launch
                 }
-            )
+                
+                val anime = animeResult.getOrNull()!!
+                val preferredLanguage = settingsRepository.getPreferredLanguage()
+                _selectedLanguage.value = if (anime.availableLanguages.contains(preferredLanguage)) {
+                    preferredLanguage
+                } else {
+                    anime.availableLanguages.firstOrNull() ?: "VOSTFR"
+                }
+                
+                loadEpisodesForSeason(anime, 0, _selectedLanguage.value)
+                
+            } catch (e: Exception) {
+                Timber.e(e, "Error loading anime details")
+                _uiState.value = DetailsUiState.Error(e.message ?: "Unknown error")
+            }
         }
     }
-
+    
     fun selectSeason(seasonIndex: Int) {
         val state = _uiState.value as? DetailsUiState.Success ?: return
         _selectedSeason.value = seasonIndex
         loadEpisodesForSeason(state.anime, seasonIndex, _selectedLanguage.value)
     }
-
+    
     fun selectLanguage(language: String) {
         val state = _uiState.value as? DetailsUiState.Success ?: return
         _selectedLanguage.value = language
         loadEpisodesForSeason(state.anime, _selectedSeason.value, language)
     }
-
+    
     private fun loadEpisodesForSeason(anime: AnimeDetails, seasonIndex: Int, language: String) {
         viewModelScope.launch {
-            val seasonNumber = seasonIndex + 1
-            Timber.d("loadEpisodesForSeason slug=%s season=%d lang=%s", anime.slug, seasonNumber, language)
-
-            val episodesResult = catalogRepository.getEpisodesForSeason(anime.slug, seasonNumber, language)
-            episodesResult.fold(
-                onSuccess = { eps ->
-                    _uiState.value = DetailsUiState.Success(anime, eps)
-                },
-                onFailure = { e ->
-                    val msg = e.toReadableMessage(prefix = "Chargement des épisodes", extra = "slug=${anime.slug}, season=$seasonNumber, lang=$language")
-                    Timber.e(e, "getEpisodesForSeason failed: %s", msg)
-                    _uiState.value = DetailsUiState.Error(msg)
+            try {
+                val season = anime.seasons.getOrNull(seasonIndex) ?: return@launch
+                val seasonNumber = seasonIndex + 1
+                
+                val episodesResult = catalogRepository.getEpisodesForSeason(anime.slug, seasonNumber, language)
+                
+                if (episodesResult.isSuccess) {
+                    val episodes = episodesResult.getOrNull()!!
+                    _uiState.value = DetailsUiState.Success(anime, episodes)
                 }
-            )
+            } catch (e: Exception) {
+                Timber.e(e, "Error loading episodes")
+            }
         }
     }
-}
-
-/** Transforme une Exception en message lisible pour l’UI + logs utiles */
-private fun Throwable.toReadableMessage(prefix: String? = null, extra: String? = null): String {
-    val core = when (this) {
-        is retrofit2.HttpException -> {
-            val code = code()
-            val body = try { response()?.errorBody()?.string()?.take(200) } catch (_: Throwable) { null }
-            "HTTP $code${if (!body.isNullOrBlank()) " – $body" else ""}"
-        }
-        is java.net.UnknownHostException -> "Aucune connexion au serveur (UnknownHost)"
-        is java.net.SocketTimeoutException -> "Délai dépassé (timeout)"
-        is java.io.IOException -> "Erreur réseau (IO)"
-        is com.google.gson.JsonParseException -> "Réponse JSON invalide (parsing)"
-        else -> this.message ?: this::class.java.simpleName
-    }
-    val tail = extra?.let { " [$it]" } ?: ""
-    return if (prefix.isNullOrBlank()) core + tail else "$prefix : $core$tail"
 }
 
 sealed class DetailsUiState {
@@ -145,7 +132,7 @@ sealed class DetailsUiState {
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun DetailsScreen(
-    slug: String,
+    animeId: String,
     onEpisodeClick: (String, String, String) -> Unit,
     onBackPressed: () -> Unit,
     modifier: Modifier = Modifier,
@@ -155,8 +142,8 @@ fun DetailsScreen(
     val selectedSeason by viewModel.selectedSeason.collectAsState()
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     
-    LaunchedEffect(slug) {
-        viewModel.loadAnimeDetails(slug)
+    LaunchedEffect(animeId) {
+        viewModel.loadAnimeDetails(animeId)
     }
     
     BackHandler { onBackPressed() }
@@ -264,7 +251,7 @@ private fun DetailsContent(
                             items(anime.seasons.size) { index ->
                                 Button(
                                     onClick = { onSeasonSelected(index) },
-                                    colors = ButtonDefaults.buttonColors(
+                                    colors = ButtonDefaults.colors(
                                         containerColor = if (index == selectedSeason)
                                             MaterialTheme.colorScheme.primary
                                         else
@@ -286,7 +273,7 @@ private fun DetailsContent(
                             val language = anime.availableLanguages[index]
                             Button(
                                 onClick = { onLanguageSelected(language) },
-                                colors = ButtonDefaults.buttonColors(
+                                colors = ButtonDefaults.colors(
                                     containerColor = if (language == selectedLanguage)
                                         MaterialTheme.colorScheme.primary
                                     else
@@ -311,15 +298,10 @@ private fun DetailsContent(
                 episodes.forEach { episode ->
                     Card(
                         onClick = { onEpisodeClick(episode) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp)
-                            .padding(bottom = 12.dp)
+                        modifier = Modifier.fillMaxWidth().height(80.dp).padding(bottom = 12.dp)
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
+                            modifier = Modifier.fillMaxSize().padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Surface(
@@ -328,7 +310,7 @@ private fun DetailsContent(
                                 modifier = Modifier.size(48.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Icon(
+                                    androidx.compose.material3.Icon(
                                         imageVector = Icons.Default.PlayArrow,
                                         contentDescription = "Play",
                                         tint = Color.White
@@ -353,3 +335,11 @@ private fun DetailsContent(
         }
     }
 }
+FIXEOF
+
+echo "✅ DetailsScreen.kt corrigé!"
+echo ""
+echo "Maintenant:"
+echo "  1. Synchronisez dans Android Studio (File > Sync Project with Gradle Files)"
+echo "  2. Rebuild: Build > Rebuild Project"
+echo ""

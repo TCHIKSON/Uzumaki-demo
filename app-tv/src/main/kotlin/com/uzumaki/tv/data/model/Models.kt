@@ -26,23 +26,43 @@ data class Season(
 )
 
 data class EpisodeData(
-    @SerializedName("_id") val id: EpisodeId,
-    val season: Int,
+    val id: String,   // ← le backend renvoie "id": "string"
+    val season: String,
     val lang: String,
-    val slug: String,
-    val episodes: List<String>,
-    val meta: Map<String, Map<String, List<String>>>,
-    val pageUrl: String,
-    val title: String
+    val title: String,
+    val episodes: List<EpisodeItem>,
+    val meta: Map<String, Map<String, List<String>>> = emptyMap(),
+    val updatedAt: Long? = null
 ) {
-    data class EpisodeId(@SerializedName("\$oid") val oid: String)
-    
+    // Accès pratique aux URLs de stream (via meta), avec fallback sur sources
     fun getStreamUrls(episodeNumber: Int, language: String): List<String> {
-        val langMeta = meta[language] ?: return emptyList()
-        val episodeKey = "episode_$episodeNumber"
-        return langMeta[episodeKey] ?: emptyList()
+        val langKey = language.lowercase()
+        // 1) priorité: meta[lang]["episode_N"]
+        meta[langKey]?.get("episode_$episodeNumber")?.let { return it }
+        // 2) fallback: trouver l'épisode et prendre ses sources.url
+        val item = episodes.firstOrNull { it.number == episodeNumber } ?: return emptyList()
+        return item.sources.mapNotNull { it.url }
     }
 }
+
+data class EpisodeItem(
+    val showTitle: String,
+    val season: String,
+    val number: Int,
+    val title: String,
+    val sources: List<EpisodeSource> = emptyList(),
+    val subtitles: List<EpisodeSubtitle> = emptyList()
+)
+
+data class EpisodeSource(
+    val type: String,
+    val url: String?
+)
+
+data class EpisodeSubtitle(
+    val lang: String? = null,
+    val url: String? = null
+)
 
 // UI Models
 data class Episode(
@@ -133,3 +153,16 @@ data class PlayerState(
     val animeTitle get() = currentAnime?.title ?: ""
     val episodeTitle get() = currentEpisode?.title ?: ""
 }
+data class ResolveRequest(val urls: List<String>, val perLinkTimeoutMs: Int = 8000)
+data class ResolveItem(
+    val url: String,
+    val success: Boolean,
+    val directUrl: String? = null,
+    val type: String? = null,
+    val contentType: String? = null,
+    val hostType: String? = null,
+    val error: String? = null
+)
+data class ResolveResponse(val results: List<ResolveItem> = emptyList())
+
+
