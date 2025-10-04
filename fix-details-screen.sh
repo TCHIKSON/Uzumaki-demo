@@ -1,3 +1,13 @@
+#!/bin/bash
+# Fix DetailsScreen.kt MaterialTheme import issue
+
+set -e
+
+echo "🔧 Correction de DetailsScreen.kt..."
+
+BASE="app-tv/src/main/kotlin/com/uzumaki/tv"
+
+cat > "$BASE/ui/details/DetailsScreen.kt" << 'FIXEOF'
 package com.uzumaki.tv.ui.details
 
 import androidx.activity.compose.BackHandler
@@ -9,7 +19,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -289,15 +298,10 @@ private fun DetailsContent(
                 episodes.forEach { episode ->
                     Card(
                         onClick = { onEpisodeClick(episode) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp)
-                            .padding(bottom = 12.dp)
+                        modifier = Modifier.fillMaxWidth().height(80.dp).padding(bottom = 12.dp)
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
+                            modifier = Modifier.fillMaxSize().padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Surface(
@@ -306,7 +310,7 @@ private fun DetailsContent(
                                 modifier = Modifier.size(48.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Icon(
+                                    androidx.compose.material3.Icon(
                                         imageVector = Icons.Default.PlayArrow,
                                         contentDescription = "Play",
                                         tint = Color.White
@@ -331,3 +335,11 @@ private fun DetailsContent(
         }
     }
 }
+FIXEOF
+
+echo "✅ DetailsScreen.kt corrigé!"
+echo ""
+echo "Maintenant:"
+echo "  1. Synchronisez dans Android Studio (File > Sync Project with Gradle Files)"
+echo "  2. Rebuild: Build > Rebuild Project"
+echo ""

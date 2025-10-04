@@ -1,3 +1,12 @@
+#!/bin/bash
+set -e
+
+echo "🔧 Correction de Card colors dans DetailsScreen..."
+
+BASE="app-tv/src/main/kotlin/com/uzumaki/tv"
+
+# La correction : utiliser Card sans paramètre colors, et styliser via le modifier
+cat > "$BASE/ui/details/DetailsScreen.kt" << 'FIXEOF'
 package com.uzumaki.tv.ui.details
 
 import androidx.activity.compose.BackHandler
@@ -331,3 +340,8 @@ private fun DetailsContent(
         }
     }
 }
+FIXEOF
+
+echo "✅ Card colors corrigé!"
+echo ""
+echo "Rebuild dans Android Studio maintenant!"
